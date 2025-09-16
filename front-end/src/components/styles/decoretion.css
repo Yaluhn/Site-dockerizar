@@ -1,0 +1,13 @@
+.decorationP {
+  width: 164px;
+  height: 164px;
+  border-radius: 50%;
+  background-color: #FF0391;
+  position: absolute;       
+  z-index: 0;               
+}
+@media (max-width: 1200px) {
+  .decorationP {
+    display: none;
+  } 
+}

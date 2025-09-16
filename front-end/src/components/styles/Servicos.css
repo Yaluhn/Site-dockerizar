@@ -1,0 +1,18 @@
+.Content-service{
+  position: relative;
+  z-index: 0;
+}
+.page-title-service{
+  text-align: left;
+  padding-top: 1.5rem;
+  padding-left: 2rem;
+}
+.service-h2{
+  font-size: 3rem;
+}
+
+@media (max-width: 768px) {
+  .service-h2 h2{
+  font-size: 2rem;
+  }
+}
