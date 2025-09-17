@@ -1,12 +1,14 @@
-FROM node:22.18.0
-
-WORKDIR /api
-
+FROM node:22.18.0 as build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
 COPY . .
+RUN npm run build
 
-RUN rm -rf node_modules
-RUN npm i
-
-CMD [ "npm", "run", "start:dev" ]
-
+FROM node:22.18.0-slim
+WORKDIR /app
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/dist ./dist
+RUN npm install --omit=dev
 EXPOSE 5000
+CMD ["node", "dist/index.js"]
