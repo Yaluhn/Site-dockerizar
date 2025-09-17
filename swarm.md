@@ -1,5 +1,13 @@
 # Deploy com Docker Swarm
 
+http://45.161.179.23
+
+http://192.168.0.9:5000/api/
+
+via proxy nginx
+
+http://192.168.0.9/api/
+
 ## Passo a passo para produção com Swarm
 
 1. **Build das imagens localmente:**
@@ -214,3 +222,9 @@ No Docker Swarm, a opção `build:` não é suportada diretamente no arquivo de 
 Assim, o Swarm irá baixar e rodar as imagens já prontas, sem tentar buildar durante o deploy.
 
 Se quiser automatizar o processo, use scripts ou CI/CD para buildar e publicar as imagens antes do deploy Swarm.
+
+2. **(Opcional) Remover a stack:**
+
+   ```bash
+   docker stack rm site
+   ```

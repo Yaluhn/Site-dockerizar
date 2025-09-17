@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   front-end:
-    image: username/site-frontend:latest
+    image: kayquews/site-frontend:latest
     deploy:
       replicas: 1
       restart_policy:
@@ -11,7 +11,7 @@ services:
       - site-network
 
   back-end:
-    image: username/site-backend:latest
+    image: kayquews/site-backend:latest
     ports:
       - "5000:5000"
     deploy:
@@ -22,7 +22,7 @@ services:
       - site-network
 
   nginx:
-    image: username/site-nginx:latest
+    image: kayquews/site-nginx:latest
     ports:
       - "80:80"
     depends_on:
