@@ -95,7 +95,7 @@ const mapNotionProperties = (page: any) => {
 };
 
 // Rota para buscar um post específico
-app.get('/api/notion/post/:id', async (req: Request, res: Response) => {
+app.get('/api/notion/posts/:id', async (req: Request, res: Response) => {
   try {
     const pageId = req.params.id;
     const page = await notion.pages.retrieve({ page_id: pageId });
