@@ -1,0 +1,39 @@
+
+
+services:
+  front-end:
+    build: ./front-end
+    restart: unless-stopped
+    container_name: front-end
+    networks:
+      - site-network
+
+  back-end:
+    build: ./back-end
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./back-end:/app
+      - /app/node_modules
+    restart: unless-stopped
+    container_name: back-end
+    networks:
+      - site-network
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - front-end
+      - back-end
+    restart: unless-stopped
+    container_name: nginx
+    networks:
+      - site-network
+
+networks:
+  site-network:
+    driver: bridge

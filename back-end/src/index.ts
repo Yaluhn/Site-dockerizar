@@ -1,8 +1,8 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
-import { Client } from '@notionhq/client'; 
+import { Client } from '@notionhq/client';
 
 dotenv.config();
 
@@ -10,6 +10,26 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Rota de health check
+app.get('/api/health', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+// ROTA TEMPORÁRIA PARA DEBUG DE VARIÁVEIS DE AMBIENTE
+app.get('/env', (req: Request, res: Response) => {
+  res.json({
+    NOTION_API_KEY: process.env.NOTION_API_KEY,
+    NOTION_DATABASE_ID: process.env.NOTION_DATABASE_ID,
+    EMAIL_USER: process.env.EMAIL_USER,
+    EMAIL_PASS: process.env.EMAIL_PASS ? '***' : undefined,
+    PORT: process.env.PORT
+  });
+});
+
+// Rota de health check da API principal
+app.get('/api/', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'api ok' });
+});
 // Configuração do cliente Notion
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
 
@@ -75,7 +95,7 @@ const mapNotionProperties = (page: any) => {
 };
 
 // Rota para buscar um post específico
-app.get('/api/notion/post/:id', async (req, res) => {
+app.get('/api/notion/posts/:id', async (req: Request, res: Response) => {
   try {
     const pageId = req.params.id;
     const page = await notion.pages.retrieve({ page_id: pageId });
@@ -88,7 +108,7 @@ app.get('/api/notion/post/:id', async (req, res) => {
 });
 
 // Rota para buscar todos os posts
-app.get('/api/notion/posts', async (req, res) => {
+app.get('/api/notion/posts', async (req: Request, res: Response) => {
   try {
     const databaseId = process.env.NOTION_DATABASE_ID!;
     const response = await notion.databases.query({
@@ -107,7 +127,7 @@ app.get('/api/notion/posts', async (req, res) => {
   }
 });
 // Envio de Email
-app.post('/send-email', async (req, res) => {
+app.post('/send-email', async (req: Request, res: Response) => {
   const { name, email, message } = req.body;
 
   try {
