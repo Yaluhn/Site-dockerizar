@@ -13,26 +13,66 @@ http://192.168.0.9/api/
 1. **Build das imagens localmente:**
 
    ```bash
-   docker build -t seu-usuario/front-end:latest ./front-end
-   docker build -t seu-usuario/back-end:latest ./back-end
-   docker build -t seu-usuario/nginx:latest -f Dockerfile.nginx .
+   docker build -t kayquews/front-end:latest ./front-end
+   docker build -t kayquews/back-end:latest ./back-end
+   docker build -t kayquews/nginx:latest -f Dockerfile.nginx .
    ```
+
+# (Opcional) Limpe imagens antigas para evitar conflitos e liberar espaço:
+
+docker image prune -af
+
+# (Opcional) Remova todos os containers parados/antigos:
+
+docker container prune -f
+
+````
 
 2. **(Opcional) Faça push das imagens para o Docker Hub:**
 
-   ```bash
-   docker push seu-usuario/front-end:latest
-   docker push seu-usuario/back-end:latest
-   docker push seu-usuario/nginx:latest
-   ```
+```bash
+docker push kayquews/front-end:latest
+docker push kayquews/back-end:latest
+docker push kayquews/nginx:latest
+````
 
 3. **Edite o arquivo `docker-swarm.yml` para usar as imagens:**
+
+# Deploy com Docker Swarm
+
+Acesse:
+
+- http://45.161.179.23
+- http://192.168.0.9:5000/api/
+- via proxy nginx: http://192.168.0.9/api/
+
+---
+
+## Passo a passo para produção com Swarm
+
+1. **Build das imagens localmente:**
+
+   ```bash
+   docker build -t yaluhn/front-end:latest ./front-end
+   docker build -t yaluhn/back-end:latest ./back-end
+   docker build -t yaluhn/nginx:latest -f Dockerfile.nginx .
+   ```
+
+2. **(Opcional) Push das imagens para o Docker Hub:**
+
+   ```bash
+   docker push yaluhn/front-end:latest
+   docker push yaluhn/back-end:latest
+   docker push yaluhn/nginx:latest
+   ```
+
+3. **Edite o `docker-swarm.yml` para usar as imagens:**
 
    ```yaml
    version: "3.8"
    services:
      front-end:
-       image: seu-usuario/front-end:latest
+       image: yaluhn/front-end:latest
        deploy:
          replicas: 1
          restart_policy:
@@ -41,7 +81,7 @@ http://192.168.0.9/api/
          - site-network
 
      back-end:
-       image: seu-usuario/back-end:latest
+       image: yaluhn/back-end:latest
        ports:
          - "5000:5000"
        deploy:
@@ -52,7 +92,7 @@ http://192.168.0.9/api/
          - site-network
 
      nginx:
-       image: seu-usuario/nginx:latest
+       image: yaluhn/nginx:latest
        ports:
          - "80:80"
        depends_on:
@@ -70,7 +110,7 @@ http://192.168.0.9/api/
        driver: overlay
    ```
 
-4. **Inicialize o Swarm (se ainda não fez):**
+4. **Inicialize o Swarm (se necessário):**
 
    ```bash
    docker swarm init
@@ -83,18 +123,22 @@ http://192.168.0.9/api/
    ```
 
 6. **Verifique os serviços:**
+
    ```bash
    docker stack services site
    docker stack ps site
    ```
 
+7. **(Opcional) Remova a stack:**
+   ```bash
+   docker stack rm site
+   ```
+
 ---
 
-## Exemplos avançados para Docker Swarm
+## Exemplos avançados
 
-### 1. Usando secrets (senhas seguras)
-
-Crie um secret:
+### Usando secrets (senhas seguras)
 
 ```bash
 echo "minha_senha_super_secreta" | docker secret create db_password -
@@ -105,47 +149,62 @@ No serviço:
 ```yaml
 services:
   back-end:
-    image: seu-usuario/back-end:latest
+    image: yaluhn/back-end:latest
     secrets:
       - db_password
     environment:
       - DB_PASSWORD_FILE=/run/secrets/db_password
 secrets:
-  db_password:
-    external: true
+  external: true
 ```
 
----
-
-### 2. Usando volumes para persistência
+### Usando volumes para persistência
 
 ```yaml
 services:
   back-end:
-    image: seu-usuario/back-end:latest
+    image: yaluhn/back-end:latest
     volumes:
       - dados-backend:/app/data
 volumes:
   dados-backend:
 ```
 
----
+### Balanceamento de carga
 
-### 3. Balanceamento de carga automático
+```yaml
+nginx:
+  deploy:
+    replicas: 3
+```
 
-No Swarm, todo serviço exposto em uma porta é automaticamente balanceado entre réplicas:
+### Restrições de nó
 
 ```yaml
 services:
-  nginx:
-    image: seu-usuario/nginx:latest
-    ports:
-      - "80:80"
+  back-end:
+    image: yaluhn/back-end:latest
     deploy:
-      replicas: 3
+      placement:
+        constraints:
+          - node.labels.tipo==api
 ```
 
-Acesse http://<ip_do_servidor> e o Swarm distribuirá as requisições entre as réplicas.
+No nó desejado:
+
+```bash
+docker node update --label-add tipo=api <id_do_no>
+```
+
+---
+
+**Dicas:**
+
+- Sempre substitua `yaluhn` pelo seu usuário do Docker Hub, se necessário.
+- O Swarm não suporta `build:` no arquivo de stack, apenas `image:`.
+- Para atualizar, basta rebuildar, dar push nas imagens e redeploy.
+
+Se precisar de exemplos para CI/CD, múltiplos servidores, secrets, volumes ou balanceamento, só pedir!
 
 ---
 
@@ -189,17 +248,18 @@ No Docker Swarm, a opção `build:` não é suportada diretamente no arquivo de 
 1. **Buildar as imagens localmente:**
 
    ```bash
-   docker build -t seu-usuario/front-end:latest ./front-end
-   docker build -t seu-usuario/back-end:latest ./back-end
-   docker build -t seu-usuario/nginx:latest -f Dockerfile.nginx .
+   docker build -t yaluhn/front-end:latest ./front-end
+       docker stack rm site
+   docker build -t yaluhn/back-end:latest ./back-end
+   docker build -t yaluhn/nginx:latest -f Dockerfile.nginx .
    ```
 
 2. **(Opcional) Fazer push para o Docker Hub:**
 
    ```bash
-   docker push seu-usuario/front-end:latest
-   docker push seu-usuario/back-end:latest
-   docker push seu-usuario/nginx:latest
+   docker push yaluhn/front-end:latest
+   docker push yaluhn/back-end:latest
+   docker push yaluhn/nginx:latest
    ```
 
 3. **No arquivo `docker-swarm.yml`, troque `build:` por `image:`:**
